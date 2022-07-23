@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "twitter_clone_backend"
+version = "0.1.0"
+description = ""
+authors = ["Konstantin Bulgakov <bulgakov_kd@mail.ru>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+alembic = "^1.8.1"
+fastapi = "^0.79.0"
+SQLAlchemy = "^1.4.39"
+psycopg2-binary = "^2.9.3"
+uvicorn = "^0.18.2"
+
+[tool.poetry.dev-dependencies]
+mypy = "^0.971"
+sqlalchemy-stubs = "^0.4"
+black = "^22.6.0"
+flake8 = "^4.0.1"
+isort = "^5.10.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
