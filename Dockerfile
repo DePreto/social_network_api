@@ -16,4 +16,4 @@ RUN bash -c "if [ $INSTALL_DEV == 'true' ] ; then poetry install --no-root ; els
 
 RUN chmod +x app/prestart.sh
 
-ENV PYTHONPATH=/src
+ENV PYTHONPATH=/src:/src/app

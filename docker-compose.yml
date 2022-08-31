@@ -34,7 +34,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./:/app
+      - ./app:/src/app
 
 volumes:
   db-data:
