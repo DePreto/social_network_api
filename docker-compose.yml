@@ -35,6 +35,7 @@ services:
       - "80:80"
     volumes:
       - ./app:/src/app
+      - ./alembic:/src/alembic
 
 volumes:
   db-data:
