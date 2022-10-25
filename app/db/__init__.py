@@ -1,3 +1,3 @@
 from .base import Base
 
-from .. import models
+from app import models

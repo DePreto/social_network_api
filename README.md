@@ -1,0 +1,13 @@
+env.py: 
+
+POSTGRES_SERVER=
+POSTGRES_USER=
+POSTGRES_PASSWORD==
+POSTGRES_DB=
+
+PGADMIN_DEFAULT_EMAIL =
+PGADMIN_DEFAULT_PASSWORD =
+
+app: localhost:5000
+pgadmin: localhost:8080
+db: localhost:5432
