@@ -1,18 +1,15 @@
-from uuid import uuid4
-
 from sqlalchemy import ARRAY, Column, DateTime, Text, Integer, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from app.db.base import Base
+from .db.base import Base
 
 
-class Tweets(Base):
-    __tablename__ = "tweets"
+class Tweet(Base):
+    __tablename__ = "tweet"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("user.id"))
     post = Column(Text)
     favorites_count = Column(Integer, nullable=False, server_default="0")
     replies_count = Column(Integer, nullable=False, server_default="0")
@@ -21,42 +18,43 @@ class Tweets(Base):
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
-    favorites = relationship("Favorites", backref="tweet")
-    retweets = relationship("Retweets", backref="tweet")
-    replies = relationship("Replies", backref="tweet")
-    taggings = relationship("Taggings", backref="tweet")
+    favorites = relationship("Favorite", backref="tweet")
+    retweets = relationship("Retweet", backref="tweet")
+    replies = relationship("Reply", backref="tweet")
+    taggings = relationship("Tagging", backref="tweet")
 
 
-class Favorites(Base):
-    __tablename__ = "favorites"
+class Favorite(Base):
+    __tablename__ = "favorite"
 
-    id = Column(UUID(as_uuid=True), primary_key=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
-    tweet_id = Column(UUID(as_uuid=True), ForeignKey("tweets.id"))
-
-
-class Retweets(Base):
-    __tablename__ = "retweets"
-
-    retweet_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
-    tweet_id = Column(UUID(as_uuid=True), ForeignKey("tweets.id"))
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("user.id"))
+    tweet_id = Column(Integer, ForeignKey("tweet.id"))
 
 
-class Replies(Base):
-    __tablename__ = "replies"
+class Retweet(Base):
+    __tablename__ = "retweet"
 
-    reply_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
-    tweet_id = Column(UUID(as_uuid=True), ForeignKey("tweets.id"))
+    retweet_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("user.id"))
+    tweet_id = Column(Integer, ForeignKey("tweet.id"))
+
+
+class Reply(Base):
+    __tablename__ = "reply"
+
+    reply_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("user.id"))
+    tweet_id = Column(Integer, ForeignKey("tweet.id"))
     post = Column(Text)
 
 
-class Users(Base):
-    __tablename__ = "users"
+class User(Base):
+    __tablename__ = "user"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(Text, nullable=False)
+    key = Column(Text, nullable=False)
     favorites_count = Column(Integer, nullable=False, server_default="0")
     followers_count = Column(Integer, nullable=False, server_default="0")
     following_count = Column(Integer, nullable=False, server_default="0")
@@ -64,36 +62,36 @@ class Users(Base):
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
-    tweets = relationship("Tweets", backref="user")
-    favorites = relationship("Favorites", backref="user")
-    followers = relationship("Followers.user_id", backref="user")  # TODO
-    following = relationship("Followers.follower_id", backref="follower")  # TODO
+    tweets = relationship("Tweet", backref="user")
+    favorites = relationship("Favorite", backref="user")
+    # followers = relationship("Follower.user_id", backref="user")  # TODO
+    # following = relationship("Follower.follower_id", backref="follower")  # TODO
 
 
-class Followers(Base):
-    __tablename__ = "followers"
+class Follower(Base):
+    __tablename__ = "follower"
 
-    id = Column(UUID(as_uuid=True), primary_key=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
-    follower_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("user.id"))
+    follower_id = Column(Integer, ForeignKey("user.id"))
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
 
-class Taggings(Base):
-    __tablename__ = 'taggings'
+class Tagging(Base):
+    __tablename__ = 'tagging'
 
-    id = Column(UUID(as_uuid=True), primary_key=True)
-    tweet_id = Column(UUID(as_uuid=True), ForeignKey("tweets.id"))
-    tag_id = Column(UUID(as_uuid=True), ForeignKey("tags.id"))
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    tweet_id = Column(Integer, ForeignKey("tweet.id"))
+    tag_id = Column(Integer, ForeignKey("tag.id"))
 
 
-class Tags(Base):
-    __tablename__ = "tags"
+class Tag(Base):
+    __tablename__ = "tag"
 
-    id = Column(UUID(as_uuid=True), primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(Text, nullable=False)
     tweets = Column(Integer, nullable=False, server_default="0")
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
-    taggings = relationship("Taggings", backref="tag")
+    taggings = relationship("Tagging", backref="tag")
