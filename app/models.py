@@ -1,4 +1,4 @@
-from sqlalchemy import ARRAY, Column, DateTime, Text, Integer, ForeignKey
+from sqlalchemy import ARRAY, Column, DateTime, Text, Integer, ForeignKey, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -62,19 +62,22 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
+    following = relationship(
+        'User', lambda: user_following,
+        primaryjoin=lambda: User.id == user_following.c.user_id,
+        secondaryjoin=lambda: User.id == user_following.c.following_id,
+        backref='followers'
+    )
+
     tweets = relationship("Tweet", backref="user")
     favorites = relationship("Favorite", backref="user")
-    # followers = relationship("Follower.user_id", backref="user")  # TODO
-    # following = relationship("Follower.follower_id", backref="follower")  # TODO
 
 
-class Follower(Base):
-    __tablename__ = "follower"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("user.id"))
-    follower_id = Column(Integer, ForeignKey("user.id"))
-    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+user_following = Table(
+    'user_following', Base.metadata,
+    Column('user_id', Integer, ForeignKey(User.id), primary_key=True),
+    Column('following_id', Integer, ForeignKey(User.id), primary_key=True)
+)  # TODO add check user_id != following_id
 
 
 class Tagging(Base):

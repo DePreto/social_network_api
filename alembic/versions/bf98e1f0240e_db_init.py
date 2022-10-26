@@ -1,8 +1,8 @@
-"""init
+"""db_init
 
-Revision ID: 2551ba77f6cb
+Revision ID: bf98e1f0240e
 Revises: 
-Create Date: 2022-10-25 09:54:58.366109
+Create Date: 2022-10-26 21:09:43.258582
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '2551ba77f6cb'
+revision = 'bf98e1f0240e'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -38,15 +38,6 @@ def upgrade() -> None:
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('follower',
-    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('user_id', sa.Integer(), nullable=True),
-    sa.Column('follower_id', sa.Integer(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['follower_id'], ['user.id'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
     op.create_table('tweet',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=True),
@@ -59,6 +50,13 @@ def upgrade() -> None:
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('user_following',
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('following_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['following_id'], ['user.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+    sa.PrimaryKeyConstraint('user_id', 'following_id')
     )
     op.create_table('favorite',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
@@ -102,8 +100,8 @@ def downgrade() -> None:
     op.drop_table('retweet')
     op.drop_table('reply')
     op.drop_table('favorite')
+    op.drop_table('user_following')
     op.drop_table('tweet')
-    op.drop_table('follower')
     op.drop_table('user')
     op.drop_table('tag')
     # ### end Alembic commands ###
