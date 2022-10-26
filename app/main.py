@@ -48,27 +48,41 @@ def post_medias():
 
 
 @app.delete("/api/tweets/{id}")
-def delete_tweet(item_id: int = Path(alias="id")):
-    pass
+def delete_tweet(
+        tweet_id: int = Path(alias="id"),
+        api_key: str = Header(default=None, alias="api-key"),
+        session: Session = Depends(get_session)
+):
+    user = session.query(models.User).filter_by(key=api_key).one_or_none()
+
+    if user:
+        tweet = session.query(models.Tweet).filter_by(id=tweet_id, user_id=user.id).one_or_none()
+        if tweet:
+            session.delete(tweet)
+            session.commit()
+
+            return {
+                "result": True
+            }
 
 
 @app.post("/api/tweets/{id}/likes")
-def post_like(item_id: int = Path(alias="id")):
+def post_like(tweet_id: int = Path(alias="id")):
     pass
 
 
 @app.delete("/api/tweets/{id}/likes")
-def delete_like(item_id: int = Path(alias="id")):
+def delete_like(tweet_id: int = Path(alias="id")):
     pass
 
 
 @app.post("/api/users/{id}/follow")
-def post_follow(item_id: int = Path(alias="id")):
+def post_follow(user_id: int = Path(alias="id")):
     pass
 
 
 @app.delete("/api/users/{id}/follow")
-def delete_follow(item_id: int = Path(alias="id")):
+def delete_follow(user_id: int = Path(alias="id")):
     pass
 
 
@@ -83,7 +97,7 @@ def get_me():
 
 
 @app.get("/api/users/{id}")
-def get_user(item_id: int = Path(alias="id")):
+def get_user(user_id: int = Path(alias="id")):
     pass
 
 
