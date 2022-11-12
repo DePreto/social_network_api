@@ -12,8 +12,8 @@ COPY . /src
 
 # Allow installing dev dependencies to run tests
 ARG INSTALL_DEV=false
-RUN bash -c "if [ $INSTALL_DEV == 'true' ] ; then poetry install --no-root ; else poetry install --no-root --no-dev ; fi"
-
-RUN chmod +x app/prestart.sh
+RUN bash -c "if [ $INSTALL_DEV == 'true' ] ; then poetry install --no-root ; else poetry install --no-root --only main ; fi"
 
 ENV PYTHONPATH=/src:/src/app
+
+CMD poetry run alembic upgrade head && uvicorn --host 0.0.0.0 --port 80 app.main:app

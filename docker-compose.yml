@@ -11,6 +11,11 @@ services:
       - PGDATA=/var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5432" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   pgadmin:
     image: dpage/pgadmin4
@@ -36,6 +41,7 @@ services:
     volumes:
       - ./app:/src/app
       - ./alembic:/src/alembic
+    restart: on-failure
 
 volumes:
   db-data:
