@@ -98,3 +98,17 @@ class Tag(Base):
     updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     taggings = relationship("Tagging", backref="tag")
+
+
+class Media(Base):
+    __tablename__ = "media"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    path = Column(Text)
+
+
+class UserMedia(Base):
+    __tablename__ = "user_media"
+    user_id = Column(Integer, ForeignKey("user.id"))
+    media_id = Column(Integer, ForeignKey("media.id"))
+

@@ -12,6 +12,7 @@ SQLAlchemy = "^1.4.39"
 psycopg2-binary = "^2.9.3"
 uvicorn = "^0.18.2"
 pytest = "^7.1.2"
+python-multipart = "^0.0.5"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.971"

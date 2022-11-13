@@ -1,9 +1,14 @@
-from fastapi import FastAPI, Path, Body, Query, Header, Depends
+import os
+import time
+
+from fastapi import FastAPI, Path, Body, Query, Header, Depends, UploadFile
 from app import models, schemas
 from db.session import Session
+
 import uvicorn
 
 app = FastAPI()
+out_file_path = os.environ.get("OUT_FILE_PATH")
 
 
 def get_session():
@@ -43,8 +48,29 @@ def post_tweet(
 
 
 @app.post("/api/medias")
-def post_medias():
-    pass
+def post_medias(
+        file: UploadFile,
+        api_key: str = Header(default=None, alias="api-key"),
+        session: Session = Depends(get_session)
+):
+    user = session.query(models.User).filter_by(key=api_key).one_or_none()  # TODO move to Depends and raise exc if None
+
+    file_name = f"{user.id}_{time.monotonic_ns()}_{file.filename}"
+    file_path = os.path.join(out_file_path, file_name)
+    try:
+        with open(file_path, 'wb') as out_file:
+            content = file.file.read()
+            out_file.write(content)
+    except Exception:
+        ...
+    finally:
+        media = models.Media(path=file_path)
+        session.add(media)
+        session.flush()
+
+        user_media = models.UserMedia(user_id=user.id, media_id=media.id)
+        session.add(user_media)
+        session.commit()
 
 
 @app.delete("/api/tweets/{id}")
