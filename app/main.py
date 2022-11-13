@@ -67,8 +67,8 @@ def post_medias(
         with open(file_path, 'wb') as out_file:
             content = file.file.read()
             out_file.write(content)
-    except Exception:  # TODO
-        ...
+    except IOError as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
     finally:
         media = models.Media(path=file_path)
         session.add(media)

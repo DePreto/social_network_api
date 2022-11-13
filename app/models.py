@@ -1,4 +1,4 @@
-from sqlalchemy import ARRAY, Column, DateTime, Text, Integer, ForeignKey, Table, PrimaryKeyConstraint
+from sqlalchemy import ARRAY, Column, DateTime, Text, Integer, ForeignKey, Table, PrimaryKeyConstraint, CheckConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -76,8 +76,9 @@ class User(Base):
 user_following = Table(
     'user_following', Base.metadata,
     Column('user_id', Integer, ForeignKey(User.id), primary_key=True),
-    Column('following_id', Integer, ForeignKey(User.id), primary_key=True)
-)  # TODO add check user_id != following_id
+    Column('following_id', Integer, ForeignKey(User.id), primary_key=True),
+    CheckConstraint('user_id <> following_id'),
+)
 
 
 class Tagging(Base):
