@@ -1,4 +1,4 @@
-from sqlalchemy import ARRAY, Column, DateTime, Text, Integer, ForeignKey, Table
+from sqlalchemy import ARRAY, Column, DateTime, Text, Integer, ForeignKey, Table, PrimaryKeyConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -112,3 +112,6 @@ class UserMedia(Base):
     user_id = Column(Integer, ForeignKey("user.id"))
     media_id = Column(Integer, ForeignKey("media.id"))
 
+    __table_args__ = (
+        PrimaryKeyConstraint('user_id', 'media_id'),
+    )

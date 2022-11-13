@@ -1,7 +1,7 @@
 import os
 import time
 
-from fastapi import FastAPI, Path, Body, Query, Header, Depends, UploadFile
+from fastapi import FastAPI, Path, Body, Query, Header, Depends, UploadFile, HTTPException
 from app import models, schemas
 from db.session import Session
 
@@ -19,6 +19,17 @@ def get_session():
         db.close()
 
 
+def get_crt_user(
+    api_key: str = Header(default=None, alias="api-key"),
+    session: Session = Depends(get_session)
+):
+    user = session.query(models.User).filter_by(key=api_key).one_or_none()
+    if user:
+        return user
+    else:
+        raise HTTPException(status_code=401, detail='Unauthorized')
+
+
 @app.get("/")
 def first_root():
     return {"Hello": "1World"}
@@ -27,41 +38,36 @@ def first_root():
 @app.post("/api/tweets")
 def post_tweet(
         tweet: schemas.TweetSchema,
-        api_key: str = Header(default=None, alias="api-key"),
+        user: models.User = Depends(get_crt_user),
         session: Session = Depends(get_session)
 ):
-    user = session.query(models.User).filter_by(key=api_key).one_or_none()
+    tweet = models.Tweet(user_id=user.id, post=tweet.tweet_data)
+    session.add(tweet)
+    session.flush()
 
-    if user:
-        tweet = models.Tweet(user_id=user.id, post=tweet.tweet_data)
-        session.add(tweet)
-        session.flush()
+    ...  # work with media
 
-        ...  # work with media
+    session.commit()
 
-        session.commit()
-
-        return {
-            "result": True,
-            "tweet_id": tweet.id
-        }
+    return {
+        "result": True,
+        "tweet_id": tweet.id
+    }
 
 
 @app.post("/api/medias")
 def post_medias(
         file: UploadFile,
-        api_key: str = Header(default=None, alias="api-key"),
+        user: models.User = Depends(get_crt_user),
         session: Session = Depends(get_session)
 ):
-    user = session.query(models.User).filter_by(key=api_key).one_or_none()  # TODO move to Depends and raise exc if None
-
     file_name = f"{user.id}_{time.monotonic_ns()}_{file.filename}"
     file_path = os.path.join(out_file_path, file_name)
     try:
         with open(file_path, 'wb') as out_file:
             content = file.file.read()
             out_file.write(content)
-    except Exception:
+    except Exception:  # TODO
         ...
     finally:
         media = models.Media(path=file_path)
@@ -76,20 +82,17 @@ def post_medias(
 @app.delete("/api/tweets/{id}")
 def delete_tweet(
         tweet_id: int = Path(alias="id"),
-        api_key: str = Header(default=None, alias="api-key"),
+        user: models.User = Depends(get_crt_user),
         session: Session = Depends(get_session)
 ):
-    user = session.query(models.User).filter_by(key=api_key).one_or_none()
+    tweet = session.query(models.Tweet).filter_by(id=tweet_id, user_id=user.id).one_or_none()
+    if tweet:
+        session.delete(tweet)
+        session.commit()
 
-    if user:
-        tweet = session.query(models.Tweet).filter_by(id=tweet_id, user_id=user.id).one_or_none()
-        if tweet:
-            session.delete(tweet)
-            session.commit()
-
-            return {
-                "result": True
-            }
+        return {
+            "result": True
+        }
 
 
 @app.post("/api/tweets/{id}/likes")
