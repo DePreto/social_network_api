@@ -1,5 +1,5 @@
 import os
-import time
+import uuid
 
 from fastapi import FastAPI, Path, Body, Query, Header, Depends, UploadFile, HTTPException
 from app import models, schemas
@@ -11,17 +11,21 @@ app = FastAPI()
 out_file_path = os.environ.get("OUT_FILE_PATH")
 
 
+def get_rnd_file_name_by_content_type(content_type):
+    return '.'.join([uuid.uuid4().hex, content_type.split("/")[-1]])
+
+
 def get_session():
-    db = Session()
+    session = Session()
     try:
-        yield db
+        yield session
     finally:
-        db.close()
+        session.close()
 
 
 def get_crt_user(
-    api_key: str = Header(default=None, alias="api-key"),
-    session: Session = Depends(get_session)
+        api_key: str = Header(default=None, alias="api-key"),
+        session: Session = Depends(get_session)
 ):
     user = session.query(models.User).filter_by(key=api_key).one_or_none()
     if user:
@@ -37,15 +41,16 @@ def first_root():
 
 @app.post("/api/tweets")
 def post_tweet(
-        tweet: schemas.TweetSchema,
+        data: schemas.TweetSchema,
         user: models.User = Depends(get_crt_user),
         session: Session = Depends(get_session)
 ):
-    tweet = models.Tweet(user_id=user.id, post=tweet.tweet_data)
+    tweet = models.Tweet(user_id=user.id, post=data.tweet_data)
     session.add(tweet)
     session.flush()
-
-    ...  # work with media
+    for media_id in data.tweet_media_ids:
+        post_media = models.tweet_media.insert().values({"tweet_id": tweet.id, "media_id": media_id})
+        session.execute(post_media)
 
     session.commit()
 
@@ -61,7 +66,7 @@ def post_medias(
         user: models.User = Depends(get_crt_user),
         session: Session = Depends(get_session)
 ):
-    file_name = f"{user.id}_{time.monotonic_ns()}_{file.filename}"
+    file_name = get_rnd_file_name_by_content_type(file.content_type)
     file_path = os.path.join(out_file_path, file_name)
     try:
         with open(file_path, 'wb') as out_file:
@@ -69,14 +74,16 @@ def post_medias(
             out_file.write(content)
     except IOError as exc:
         raise HTTPException(status_code=500, detail=str(exc))
-    finally:
+    else:
         media = models.Media(path=file_path)
         session.add(media)
-        session.flush()
 
-        user_media = models.UserMedia(user_id=user.id, media_id=media.id)
-        session.add(user_media)
-        session.commit()
+    session.commit()
+
+    return {
+        "result": True,
+        "media_id": media.id,
+    }
 
 
 @app.delete("/api/tweets/{id}")

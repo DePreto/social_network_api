@@ -5,6 +5,14 @@ from sqlalchemy.sql import func
 from .db.base import Base
 
 
+tweet_media = Table(
+    "tweet_media",
+    Base.metadata,
+    Column("tweet_id", ForeignKey("tweet.id")),
+    Column("media_id", ForeignKey("media.id")),
+)
+
+
 class Tweet(Base):
     __tablename__ = "tweet"
 
@@ -22,6 +30,14 @@ class Tweet(Base):
     retweets = relationship("Retweet", backref="tweet")
     replies = relationship("Reply", backref="tweet")
     taggings = relationship("Tagging", backref="tweet")
+    media = relationship("Media", secondary=tweet_media)
+
+
+class Media(Base):
+    __tablename__ = "media"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    path = Column(Text)
 
 
 class Favorite(Base):
@@ -99,20 +115,3 @@ class Tag(Base):
     updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     taggings = relationship("Tagging", backref="tag")
-
-
-class Media(Base):
-    __tablename__ = "media"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    path = Column(Text)
-
-
-class UserMedia(Base):
-    __tablename__ = "user_media"
-    user_id = Column(Integer, ForeignKey("user.id"))
-    media_id = Column(Integer, ForeignKey("media.id"))
-
-    __table_args__ = (
-        PrimaryKeyConstraint('user_id', 'media_id'),
-    )
