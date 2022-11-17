@@ -44,7 +44,7 @@ class Favorite(Base):
     __tablename__ = "favorite"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("user.id"))
+    user_id = Column(Integer, ForeignKey("user.id"))  # TODO set PK on two columns, rm id column
     tweet_id = Column(Integer, ForeignKey("tweet.id"))
 
 

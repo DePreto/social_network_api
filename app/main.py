@@ -1,13 +1,12 @@
 import os
 import uuid
 
-from fastapi import FastAPI, Path, Body, Query, Header, Depends, UploadFile, HTTPException
+from fastapi import FastAPI, Path, Header, Depends, UploadFile, HTTPException
 from app import models, schemas
 from db.session import Session
 
 import uvicorn
 
-app = FastAPI()
 out_file_path = os.environ.get("OUT_FILE_PATH")
 
 
@@ -32,6 +31,33 @@ def get_crt_user(
         return user
     else:
         raise HTTPException(status_code=401, detail='Unauthorized')
+
+
+def get_crt_tweet(
+    tweet_id: int = Path(alias="id"),
+    session: Session = Depends(get_session),
+    user: models.User = Depends(get_crt_user)
+):
+    tweet = session.query(models.Tweet).filter_by(id=tweet_id, user_id=user.id).one_or_none()
+    if tweet:
+        return tweet
+    else:
+        raise HTTPException(status_code=404, detail="Tweet not found")
+
+
+def get_crt_favorite(
+        tweet_id: int = Path(alias="id"),
+        user: models.User = Depends(get_crt_user),
+        session: Session = Depends(get_session)
+):
+    favorite = session.query(models.Favorite).filter_by(user_id=user.id, tweet_id=tweet_id).one_or_none()
+    if favorite:
+        return favorite
+    else:
+        raise HTTPException(status_code=404, detail="Like not found")
+
+
+app = FastAPI(dependencies=[Depends(get_crt_user)])
 
 
 @app.get("/")
@@ -63,7 +89,6 @@ def post_tweet(
 @app.post("/api/medias")
 def post_medias(
         file: UploadFile,
-        user: models.User = Depends(get_crt_user),
         session: Session = Depends(get_session)
 ):
     file_name = get_rnd_file_name_by_content_type(file.content_type)
@@ -88,28 +113,43 @@ def post_medias(
 
 @app.delete("/api/tweets/{id}")
 def delete_tweet(
+        tweet: models.Tweet = Depends(get_crt_tweet),
+        session: Session = Depends(get_session)
+):
+    session.delete(tweet)
+    session.commit()
+
+    return {
+        "result": True
+    }
+
+
+@app.post("/api/tweets/{id}/likes")
+def post_like(
         tweet_id: int = Path(alias="id"),
         user: models.User = Depends(get_crt_user),
         session: Session = Depends(get_session)
 ):
-    tweet = session.query(models.Tweet).filter_by(id=tweet_id, user_id=user.id).one_or_none()
-    if tweet:
-        session.delete(tweet)
-        session.commit()
+    favourite = models.Favorite(user_id=user.id, tweet_id=tweet_id)
+    session.add(favourite)
+    session.commit()
 
-        return {
-            "result": True
-        }
-
-
-@app.post("/api/tweets/{id}/likes")
-def post_like(tweet_id: int = Path(alias="id")):
-    pass
+    return {
+        "result": True
+    }
 
 
 @app.delete("/api/tweets/{id}/likes")
-def delete_like(tweet_id: int = Path(alias="id")):
-    pass
+def delete_like(
+        favourite: models.Favorite = Depends(get_crt_favorite),
+        session: Session = Depends(get_session)
+):
+    session.delete(favourite)
+    session.commit()
+
+    return {
+        "result": True
+    }
 
 
 @app.post("/api/users/{id}/follow")
