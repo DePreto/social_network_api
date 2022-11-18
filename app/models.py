@@ -10,6 +10,7 @@ tweet_media = Table(
     Base.metadata,
     Column("tweet_id", ForeignKey("tweet.id")),
     Column("media_id", ForeignKey("media.id")),
+    PrimaryKeyConstraint("tweet_id", "media_id")
 )
 
 
@@ -43,9 +44,12 @@ class Media(Base):
 class Favorite(Base):
     __tablename__ = "favorite"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("user.id"))  # TODO set PK on two columns, rm id column
+    user_id = Column(Integer, ForeignKey("user.id"))
     tweet_id = Column(Integer, ForeignKey("tweet.id"))
+
+    __table_args__ = (
+        PrimaryKeyConstraint(user_id, tweet_id),
+    )
 
 
 class Retweet(Base):
@@ -94,6 +98,7 @@ user_following = Table(
     Column('user_id', Integer, ForeignKey(User.id), primary_key=True),
     Column('following_id', Integer, ForeignKey(User.id), primary_key=True),
     CheckConstraint('user_id <> following_id'),
+    PrimaryKeyConstraint('user_id', 'following_id')
 )
 
 

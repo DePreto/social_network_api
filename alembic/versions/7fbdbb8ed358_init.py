@@ -1,8 +1,8 @@
 """init
 
-Revision ID: c81d80410486
+Revision ID: 7fbdbb8ed358
 Revises: 
-Create Date: 2022-11-15 18:09:21.396164
+Create Date: 2022-11-18 13:31:03.243789
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'c81d80410486'
+revision = '7fbdbb8ed358'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -65,12 +65,11 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('user_id', 'following_id')
     )
     op.create_table('favorite',
-    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('user_id', sa.Integer(), nullable=True),
-    sa.Column('tweet_id', sa.Integer(), nullable=True),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('tweet_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['tweet_id'], ['tweet.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('user_id', 'tweet_id')
     )
     op.create_table('reply',
     sa.Column('reply_id', sa.Integer(), autoincrement=True, nullable=False),
@@ -98,10 +97,11 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('tweet_media',
-    sa.Column('tweet_id', sa.Integer(), nullable=True),
-    sa.Column('media_id', sa.Integer(), nullable=True),
+    sa.Column('tweet_id', sa.Integer(), nullable=False),
+    sa.Column('media_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['media_id'], ['media.id'], ),
-    sa.ForeignKeyConstraint(['tweet_id'], ['tweet.id'], )
+    sa.ForeignKeyConstraint(['tweet_id'], ['tweet.id'], ),
+    sa.PrimaryKeyConstraint('tweet_id', 'media_id')
     )
     # ### end Alembic commands ###
 

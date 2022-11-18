@@ -4,6 +4,7 @@ import uuid
 from fastapi import FastAPI, Path, Header, Depends, UploadFile, HTTPException
 from app import models, schemas
 from db.session import Session
+from sqlalchemy import delete
 
 import uvicorn
 
@@ -153,13 +154,49 @@ def delete_like(
 
 
 @app.post("/api/users/{id}/follow")
-def post_follow(user_id: int = Path(alias="id")):
-    pass
+def post_follow(
+        following_id: int = Path(alias="id"),
+        user: models.User = Depends(get_crt_user),
+        session: Session = Depends(get_session)
+):
+
+    following = session.query(models.user_following).filter_by(user_id=user.id, following_id=following_id).one_or_none()
+    following_user = session.query(models.User).filter_by(id=following_id).one_or_none()
+
+    if not following_user:
+        raise HTTPException(status_code=404, detail="Following user not found")
+    elif not following:
+        user_following = models.user_following.insert().values({"user_id": user.id, "following_id": following_id})
+        session.execute(user_following)
+        session.commit()
+
+        return {
+            "result": True
+        }
 
 
 @app.delete("/api/users/{id}/follow")
-def delete_follow(user_id: int = Path(alias="id")):
-    pass
+def delete_follow(
+        following_id: int = Path(alias="id"),
+        user: models.User = Depends(get_crt_user),
+        session: Session = Depends(get_session)
+):
+    following = session.query(models.user_following).filter_by(user_id=user.id, following_id=following_id).one_or_none()
+
+    if following:
+        delete_stmt = delete(models.user_following).where(
+            models.user_following.c.user_id == user.id,
+            models.user_following.c.following_id == following_id
+        )
+
+        session.execute(delete_stmt)
+        session.commit()
+
+        return {
+            "result": True
+        }
+    else:
+        raise HTTPException(status_code=404, detail="Following not found")
 
 
 @app.get("/api/tweets")
