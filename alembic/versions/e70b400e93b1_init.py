@@ -1,8 +1,8 @@
 """init
 
-Revision ID: 7fbdbb8ed358
+Revision ID: e70b400e93b1
 Revises: 
-Create Date: 2022-11-18 13:31:03.243789
+Create Date: 2022-11-20 13:36:48.534906
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '7fbdbb8ed358'
+revision = 'e70b400e93b1'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -67,7 +67,7 @@ def upgrade() -> None:
     op.create_table('favorite',
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('tweet_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['tweet_id'], ['tweet.id'], ),
+    sa.ForeignKeyConstraint(['tweet_id'], ['tweet.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('user_id', 'tweet_id')
     )
@@ -76,7 +76,7 @@ def upgrade() -> None:
     sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('tweet_id', sa.Integer(), nullable=True),
     sa.Column('post', sa.Text(), nullable=True),
-    sa.ForeignKeyConstraint(['tweet_id'], ['tweet.id'], ),
+    sa.ForeignKeyConstraint(['tweet_id'], ['tweet.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('reply_id')
     )
@@ -84,7 +84,7 @@ def upgrade() -> None:
     sa.Column('retweet_id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('tweet_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['tweet_id'], ['tweet.id'], ),
+    sa.ForeignKeyConstraint(['tweet_id'], ['tweet.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('retweet_id')
     )
@@ -93,14 +93,14 @@ def upgrade() -> None:
     sa.Column('tweet_id', sa.Integer(), nullable=True),
     sa.Column('tag_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['tag_id'], ['tag.id'], ),
-    sa.ForeignKeyConstraint(['tweet_id'], ['tweet.id'], ),
+    sa.ForeignKeyConstraint(['tweet_id'], ['tweet.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('tweet_media',
     sa.Column('tweet_id', sa.Integer(), nullable=False),
     sa.Column('media_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['media_id'], ['media.id'], ),
-    sa.ForeignKeyConstraint(['tweet_id'], ['tweet.id'], ),
+    sa.ForeignKeyConstraint(['tweet_id'], ['tweet.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('tweet_id', 'media_id')
     )
     # ### end Alembic commands ###
