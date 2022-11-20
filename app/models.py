@@ -8,7 +8,7 @@ from .db.base import Base
 tweet_media = Table(
     "tweet_media",
     Base.metadata,
-    Column("tweet_id", ForeignKey("tweet.id", ondelete="CASCADE")),
+    Column("tweet_id", ForeignKey("tweet.id")),
     Column("media_id", ForeignKey("media.id")),
     PrimaryKeyConstraint("tweet_id", "media_id")
 )
@@ -45,7 +45,7 @@ class Favorite(Base):
     __tablename__ = "favorite"
 
     user_id = Column(Integer, ForeignKey("user.id"))
-    tweet_id = Column(Integer, ForeignKey("tweet.id", ondelete="CASCADE"))
+    tweet_id = Column(Integer, ForeignKey("tweet.id"))
 
     __table_args__ = (
         PrimaryKeyConstraint(user_id, tweet_id),
@@ -57,7 +57,7 @@ class Retweet(Base):
 
     retweet_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("user.id"))
-    tweet_id = Column(Integer, ForeignKey("tweet.id", ondelete="CASCADE"))
+    tweet_id = Column(Integer, ForeignKey("tweet.id"))
 
 
 class Reply(Base):
@@ -65,7 +65,7 @@ class Reply(Base):
 
     reply_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("user.id"))
-    tweet_id = Column(Integer, ForeignKey("tweet.id", ondelete="CASCADE"))
+    tweet_id = Column(Integer, ForeignKey("tweet.id"))
     post = Column(Text)
 
 
@@ -106,7 +106,7 @@ class Tagging(Base):
     __tablename__ = 'tagging'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    tweet_id = Column(Integer, ForeignKey("tweet.id", ondelete="CASCADE"))
+    tweet_id = Column(Integer, ForeignKey("tweet.id"))
     tag_id = Column(Integer, ForeignKey("tag.id"))
 
 
