@@ -1,3 +1,5 @@
+from typing import List
+
 from sqlalchemy import ARRAY, Column, DateTime, Text, Integer, ForeignKey, Table, PrimaryKeyConstraint, CheckConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -27,11 +29,11 @@ class Tweet(Base):
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
-    favorites = relationship("Favorite", backref="tweet", cascade="all, delete")
-    retweets = relationship("Retweet", backref="tweet", cascade="all, delete")
-    replies = relationship("Reply", backref="tweet", cascade="all, delete")
-    taggings = relationship("Tagging", backref="tweet", cascade="all, delete")
-    media = relationship("Media", secondary=tweet_media)
+    favorites = relationship("Favorite", backref="tweet", cascade="all, delete", uselist=True)
+    retweets = relationship("Retweet", backref="tweet", cascade="all, delete", uselist=True)
+    replies = relationship("Reply", backref="tweet", cascade="all, delete", uselist=True)
+    taggings = relationship("Tagging", backref="tweet", cascade="all, delete", uselist=True)
+    media = relationship("Media", secondary=tweet_media, uselist=True)
 
 
 class Media(Base):
@@ -82,15 +84,16 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
-    following = relationship(
+    following: List = relationship(
         'User', lambda: user_following,
         primaryjoin=lambda: User.id == user_following.c.user_id,
         secondaryjoin=lambda: User.id == user_following.c.following_id,
-        backref='followers'
+        backref='followers',
+        uselist=True,
     )
 
-    tweets = relationship("Tweet", backref="user")
-    favorites = relationship("Favorite", backref="user")
+    tweets: List[Tweet] = relationship("Tweet", backref="user", uselist=True)
+    favorites: List[Favorite] = relationship("Favorite", backref="user", uselist=True)
 
 
 user_following = Table(
@@ -119,4 +122,4 @@ class Tag(Base):
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
-    taggings = relationship("Tagging", backref="tag")
+    taggings = relationship("Tagging", backref="tag", uselist=True)
