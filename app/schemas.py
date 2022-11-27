@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional, Union
+from typing import List
 
 
 class PostTweetSchema(BaseModel):
@@ -13,11 +13,6 @@ class MediaSchema(BaseModel):
     class Config:
         orm_mode = True
 
-    def dict(
-        self, *args, **kwargs
-    ) -> str:
-        return self.path
-
 
 class AuthorSchema(BaseModel):
     id: int
@@ -28,34 +23,45 @@ class AuthorSchema(BaseModel):
         allow_population_by_field_name = True
 
 
-class FavoriteSchema(BaseModel):
+class FavoriteSchemaIn(BaseModel):
     user: AuthorSchema
 
     class Config:
         orm_mode = True
 
-    def dict(self, *args, **kwargs) -> dict:
-        return {
-            "user_id": self.user.id,
-            "name": self.user.username,
-        }
+
+class FavoriteSchemaOut(AuthorSchema):
+    id: int = Field(alias="user_id")
 
 
 class TweetSchema(BaseModel):
     id: int
-    post: str = Field(alias="content")
-    media: List[MediaSchema] = Field(alias="attachments")
-    user: AuthorSchema = Field(alias="author")
-    favorites: List[FavoriteSchema] = Field(alias="likes")  # TODO name?
+
+
+class TweetSchemaIn(TweetSchema):
+    content: str = Field(alias="post")
+    attachments: List[MediaSchema] = Field(alias="media")
+    author: AuthorSchema = Field(alias="user")
+    likes: List[FavoriteSchemaIn] = Field(alias="favorites")
 
     class Config:
         orm_mode = True
-        allow_population_by_field_name = True
+        json_encoders = {
+            MediaSchema: lambda m: m.path,
+            FavoriteSchemaIn: lambda f: f.user.dict()
+        }
 
 
-class FeedSchema(BaseModel):
+class TweetSchemaOut(TweetSchema):
+    content: str
+    attachments: List[str]
+    author: AuthorSchema
+    likes: List[FavoriteSchemaOut]
+
+
+class FeedSchemaOut(BaseModel):
     result: bool
-    tweets: List[TweetSchema]
+    tweets: List[TweetSchemaOut]
 
 
 class DefaultSchema(BaseModel):

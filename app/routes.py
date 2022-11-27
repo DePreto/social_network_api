@@ -1,4 +1,5 @@
 import os
+import json
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, Path
 from sqlalchemy.orm import Session
@@ -150,18 +151,18 @@ def delete_follow(
         raise HTTPException(status_code=404, detail="Following not found")
 
 
-@router.get("/api/tweets", response_model=schemas.FeedSchema)
+@router.get("/api/tweets", response_model=schemas.FeedSchemaOut)
 def get_tweets(
         user: models.User = Depends(get_crt_user),
-        session: Session = Depends(get_session),
 ):
     feed = []
     for flw_user in user.following:
         feed.extend(flw_user.tweets)
+    feed.sort(key=lambda x: x.created_at, reverse=True)
 
     return {
         "result": True,
-        "tweets": sorted(feed, key=lambda x: x.created_at, reverse=True),
+        "tweets": [json.loads(schemas.TweetSchemaIn.from_orm(tweet).json(models_as_dict=False)) for tweet in feed],
     }
 
 
