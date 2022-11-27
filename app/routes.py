@@ -70,7 +70,7 @@ def post_medias(
     }
 
 
-@router.delete("/api/tweets/{id}")
+@router.delete("/api/tweets/{id}", response_model=schemas.DefaultSchema)
 def delete_tweet(
         user: models.User = Depends(get_crt_user),
         tweet: models.Tweet = Depends(get_crt_tweet),
@@ -83,7 +83,7 @@ def delete_tweet(
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
-@router.post("/api/tweets/{id}/likes")
+@router.post("/api/tweets/{id}/likes", response_model=schemas.DefaultSchema)
 def post_like(
         tweet: models.Tweet = Depends(get_crt_tweet),
         user: models.User = Depends(get_crt_user),
@@ -98,7 +98,7 @@ def post_like(
         session.commit()
 
 
-@router.delete("/api/tweets/{id}/likes")
+@router.delete("/api/tweets/{id}/likes", response_model=schemas.DefaultSchema)
 def delete_like(
         favourite: models.Favorite = Depends(get_crt_favorite),
         session: Session = Depends(get_session)
@@ -107,7 +107,7 @@ def delete_like(
     session.commit()
 
 
-@router.post("/api/users/{id}/follow")
+@router.post("/api/users/{id}/follow", response_model=schemas.DefaultSchema)
 def post_follow(
         following_id: int = Path(alias="id"),
         user: models.User = Depends(get_crt_user),
@@ -129,7 +129,7 @@ def post_follow(
         session.commit()
 
 
-@router.delete("/api/users/{id}/follow")
+@router.delete("/api/users/{id}/follow", response_model=schemas.DefaultSchema)
 def delete_follow(
         following_id: int = Path(alias="id"),
         user: models.User = Depends(get_crt_user),

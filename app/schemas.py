@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Union
 
 
 class PostTweetSchema(BaseModel):
@@ -12,6 +12,11 @@ class MediaSchema(BaseModel):
 
     class Config:
         orm_mode = True
+
+    def dict(
+        self, *args, **kwargs
+    ) -> str:
+        return self.path
 
 
 class AuthorSchema(BaseModel):
@@ -29,6 +34,12 @@ class FavoriteSchema(BaseModel):
     class Config:
         orm_mode = True
 
+    def dict(self, *args, **kwargs) -> dict:
+        return {
+            "user_id": self.user.id,
+            "name": self.user.username,
+        }
+
 
 class TweetSchema(BaseModel):
     id: int
@@ -45,3 +56,7 @@ class TweetSchema(BaseModel):
 class FeedSchema(BaseModel):
     result: bool
     tweets: List[TweetSchema]
+
+
+class DefaultSchema(BaseModel):
+    result: bool = True

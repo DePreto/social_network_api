@@ -2,20 +2,18 @@ import json
 from typing import Any
 
 import uvicorn
-from fastapi import FastAPI, Depends, Response
+from fastapi import FastAPI, Depends
+from fastapi.responses import JSONResponse
 
 from app.depends import get_crt_user
 from app.routes import router
+from app import schemas
 
 
-class DefaultResponse(Response):
-    media_type = "application/json"
-
+class DefaultResponse(JSONResponse):
     def render(self, content: Any) -> bytes:
         if content is None:
-            content = {
-                "result": True,
-            }
+            content = schemas.DefaultSchema().dict()
 
         if isinstance(content, bytes):
             return content
