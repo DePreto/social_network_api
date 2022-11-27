@@ -24,7 +24,7 @@ class AuthorSchema(BaseModel):
 
 
 class FavoriteSchema(BaseModel):
-    user_id: int
+    user: AuthorSchema
 
     class Config:
         orm_mode = True
