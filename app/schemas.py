@@ -1,3 +1,4 @@
+from __future__ import annotations
 from pydantic import BaseModel, Field
 from typing import List
 
@@ -21,6 +22,11 @@ class AuthorSchema(BaseModel):
     class Config:
         orm_mode = True
         allow_population_by_field_name = True
+
+
+class UserSchema(AuthorSchema):
+    followers: List[AuthorSchema]
+    following: List[AuthorSchema]
 
 
 class FavoriteSchemaIn(BaseModel):
@@ -66,3 +72,8 @@ class FeedSchemaOut(BaseModel):
 
 class DefaultSchema(BaseModel):
     result: bool = True
+
+
+class PageSchema(BaseModel):
+    result: bool
+    user: UserSchema

@@ -44,3 +44,15 @@ def get_crt_favorite(
         return favorite
     else:
         raise HTTPException(status_code=404, detail="Like not found")
+
+
+def get_user_by_id(
+        user_id: int = Path(alias="id"),
+        session: Session = Depends(get_session)
+):
+    user = session.query(models.User).filter_by(id=user_id).one_or_none()
+    if user:
+        return user
+    else:
+        raise HTTPException(status_code=404, detail='User not found')
+

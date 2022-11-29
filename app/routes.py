@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, Path
 from sqlalchemy.orm import Session
 from sqlalchemy import delete
 
-from app.depends import get_crt_user, get_session, get_crt_tweet, get_crt_favorite
+from app.depends import get_crt_user, get_session, get_crt_tweet, get_crt_favorite, get_user_by_id
 from app.utils import get_rnd_file_name_by_content_type
 from app import schemas
 from app import models
@@ -31,7 +31,7 @@ def post_tweet(
     session.flush()
 
     for media_id in data.tweet_media_ids:
-        media = session.query(models.Media).filter_by(id=media_id).one_or_none()  # TODO check that its user media
+        media = session.query(models.Media).filter_by(id=media_id).one_or_none()
         if not media:
             raise HTTPException(status_code=404, detail=f"media {media_id} not found")
 
@@ -166,11 +166,21 @@ def get_tweets(
     }
 
 
-@router.get("/api/users/me")
-def get_me():
-    pass
+@router.get("/api/users/me", response_model=schemas.PageSchema)
+def get_me(
+        user: models.User = Depends(get_crt_user)
+):
+    return {
+        "result": True,
+        "user": schemas.UserSchema.from_orm(user).dict(by_alias=True)
+    }
 
 
-@router.get("/api/users/{id}")
-def get_user(user_id: int = Path(alias="id")):
-    pass
+@router.get("/api/users/{id}", response_model=schemas.PageSchema)
+def get_user(
+        user: models.User = Depends(get_user_by_id)
+):
+    return {
+        "result": True,
+        "user": schemas.UserSchema.from_orm(user).dict(by_alias=True)
+    }
