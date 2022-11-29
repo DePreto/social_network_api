@@ -2,7 +2,7 @@ import json
 from typing import Any
 
 import uvicorn
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request
 from fastapi.responses import JSONResponse
 
 from app.depends import get_crt_user
@@ -22,6 +22,18 @@ class DefaultResponse(JSONResponse):
 
 app = FastAPI(dependencies=[Depends(get_crt_user)], default_response_class=DefaultResponse)
 app.include_router(router)
+
+
+@app.exception_handler(Exception)
+def base_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=418,
+        content={
+            "result": False,
+            "error_type": str(type(exc)),
+            "error_message": str(exc)
+        },
+    )
 
 
 if __name__ == "__main__":
