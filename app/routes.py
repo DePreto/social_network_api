@@ -15,12 +15,7 @@ router = APIRouter()
 out_file_path = os.environ.get("OUT_FILE_PATH")
 
 
-@router.get("/")
-def first_root():
-    pass
-
-
-@router.post("/api/tweets")
+@router.post("/api/tweets", response_model=schemas.PostTweetResponseSchema, status_code=201)
 def post_tweet(
         data: schemas.PostTweetSchema,
         user: models.User = Depends(get_crt_user),
@@ -46,7 +41,7 @@ def post_tweet(
     }
 
 
-@router.post("/api/medias")
+@router.post("/api/medias", response_model=schemas.PostMediaResponseSchema, status_code=201)
 def post_medias(
         file: UploadFile,
         session: Session = Depends(get_session)
@@ -84,7 +79,7 @@ def delete_tweet(
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
-@router.post("/api/tweets/{id}/likes", response_model=schemas.DefaultSchema)
+@router.post("/api/tweets/{id}/likes", response_model=schemas.DefaultSchema, status_code=201)
 def post_like(
         tweet: models.Tweet = Depends(get_crt_tweet),
         user: models.User = Depends(get_crt_user),
@@ -108,7 +103,7 @@ def delete_like(
     session.commit()
 
 
-@router.post("/api/users/{id}/follow", response_model=schemas.DefaultSchema)
+@router.post("/api/users/{id}/follow", response_model=schemas.DefaultSchema, status_code=201)
 def post_follow(
         following_id: int = Path(alias="id"),
         user: models.User = Depends(get_crt_user),

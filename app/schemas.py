@@ -77,3 +77,13 @@ class DefaultSchema(BaseModel):
 class PageSchema(BaseModel):
     result: bool
     user: UserSchema
+
+
+class PostTweetResponseSchema(BaseModel):
+    result: bool = Field()
+    tweet_id: int
+
+
+class PostMediaResponseSchema(BaseModel):
+    result: True
+    media_id: int
