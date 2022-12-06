@@ -7,13 +7,13 @@ from sqlalchemy.orm import Session
 from sqlalchemy import delete
 
 from app.depends import get_crt_user, get_session, get_crt_tweet, get_crt_favorite, get_user_by_id
+from app.config import settings
 from app.utils import get_rnd_file_name_by_content_type
 from app import schemas
 from app import models
 
 
 router = APIRouter()
-out_file_path = os.environ.get("OUT_FILE_PATH")
 
 
 @router.post("/api/tweets", response_model=schemas.PostTweetResponseSchema, status_code=201)
@@ -48,7 +48,7 @@ async def post_medias(
         session: Session = Depends(get_session)
 ):
     file_name = get_rnd_file_name_by_content_type(file.content_type)
-    file_path = os.path.join(out_file_path, file_name)
+    file_path = os.path.join(settings.OUT_FILE_PATH, file_name)
     try:
         async with async_open(file_path, 'wb') as out_file:
             content = await file.read()
