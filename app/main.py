@@ -13,14 +13,20 @@ from app import schemas
 class DefaultResponse(JSONResponse):
     def render(self, content: Any) -> bytes:
         if content is None:
-            content = schemas.DefaultSchema().dict()
+            content = schemas.DefaultSuccessSchema().dict()
 
         if isinstance(content, bytes):
             return content
         return json.dumps(content).encode(self.charset)
 
 
-app = FastAPI(dependencies=[Depends(get_crt_user)], default_response_class=DefaultResponse)
+app = FastAPI(
+    dependencies=[Depends(get_crt_user)],
+    default_response_class=DefaultResponse,
+    responses={
+        418: {"model": schemas.DefaultExceptionSchema}
+    }
+)
 app.include_router(router)
 
 

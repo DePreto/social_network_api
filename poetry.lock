@@ -1,4 +1,12 @@
 [[package]]
+name = "aiofiles"
+version = "22.1.0"
+description = "File support for asyncio."
+category = "main"
+optional = false
+python-versions = ">=3.7,<4.0"
+
+[[package]]
 name = "alembic"
 version = "1.8.1"
 description = "A database migration tool for SQLAlchemy."
@@ -518,9 +526,10 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "6fc48507c749b225e374e2ff7065bebe991d16e410232eead32dccceba45a7b5"
+content-hash = "f0e096c6a113d5d29887dc90ee3cec8c91fcfcf8112c27ab833a7518247deb0b"
 
 [metadata.files]
+aiofiles = []
 alembic = []
 anyio = []
 atomicwrites = []

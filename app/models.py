@@ -30,9 +30,9 @@ class Tweet(Base):
     updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     favorites = relationship("Favorite", backref="tweet", cascade="all, delete", uselist=True)
-    retweets = relationship("Retweet", backref="tweet", cascade="all, delete", uselist=True)
-    replies = relationship("Reply", backref="tweet", cascade="all, delete", uselist=True)
-    taggings = relationship("Tagging", backref="tweet", cascade="all, delete", uselist=True)
+    retweets = relationship("Retweet", backref="tweet", cascade="all, delete", uselist=True)  # TODO rm
+    replies = relationship("Reply", backref="tweet", cascade="all, delete", uselist=True)  # TODO rm
+    taggings = relationship("Tagging", backref="tweet", cascade="all, delete", uselist=True)  # TODO rm
     media = relationship("Media", secondary=tweet_media, uselist=True)
 
 
@@ -54,7 +54,7 @@ class Favorite(Base):
     )
 
 
-class Retweet(Base):
+class Retweet(Base):  # TODO rm
     __tablename__ = "retweet"
 
     retweet_id = Column(Integer, primary_key=True, autoincrement=True)
@@ -62,7 +62,7 @@ class Retweet(Base):
     tweet_id = Column(Integer, ForeignKey("tweet.id"))
 
 
-class Reply(Base):
+class Reply(Base):  # TODO rm
     __tablename__ = "reply"
 
     reply_id = Column(Integer, primary_key=True, autoincrement=True)
@@ -105,7 +105,7 @@ user_following = Table(
 )
 
 
-class Tagging(Base):
+class Tagging(Base):  # TODO rm
     __tablename__ = 'tagging'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -113,7 +113,7 @@ class Tagging(Base):
     tag_id = Column(Integer, ForeignKey("tag.id"))
 
 
-class Tag(Base):
+class Tag(Base):  # TODO rm
     __tablename__ = "tag"
 
     id = Column(Integer, primary_key=True, autoincrement=True)

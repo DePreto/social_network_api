@@ -1,5 +1,5 @@
 from __future__ import annotations
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError, validator
 from typing import List
 
 
@@ -65,25 +65,44 @@ class TweetSchemaOut(TweetSchema):
     likes: List[FavoriteSchemaOut]
 
 
-class FeedSchemaOut(BaseModel):
-    result: bool
+class DefaultSuccessSchema(BaseModel):
+    result: bool = True
+
+    @validator("result")
+    def result_is_true(cls, value):
+        if value is not True:
+            raise ValidationError("success result should be True")
+        return value
+
+
+class FeedSchemaOut(DefaultSuccessSchema):
     tweets: List[TweetSchemaOut]
 
 
-class DefaultSchema(BaseModel):
-    result: bool = True
-
-
-class PageSchema(BaseModel):
-    result: bool
+class PageSchema(DefaultSuccessSchema):
     user: UserSchema
 
 
-class PostTweetResponseSchema(BaseModel):
-    result: bool = Field()
+class PostTweetResponseSchema(DefaultSuccessSchema):
     tweet_id: int
 
 
-class PostMediaResponseSchema(BaseModel):
-    result: True
+class PostMediaResponseSchema(DefaultSuccessSchema):
     media_id: int
+
+
+class DefaultExceptionContentSchema(BaseModel):
+    result: bool
+    error_type: str
+    error_message: str
+
+    @validator("result")
+    def result_is_true(cls, value):
+        if value is not False:
+            raise ValidationError("success result should be False")
+        return value
+
+
+class DefaultExceptionSchema(BaseModel):
+    status_code: int
+    content: DefaultExceptionContentSchema

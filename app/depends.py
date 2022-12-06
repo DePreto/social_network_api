@@ -4,7 +4,7 @@ from fastapi import Path, Header, Depends, HTTPException
 from app import models
 
 
-def get_session():
+async def get_session():
     session = Session()
     try:
         yield session
@@ -12,7 +12,7 @@ def get_session():
         session.close()
 
 
-def get_crt_user(
+async def get_crt_user(
         api_key: str = Header(default=None, alias="api-key"),
         session: Session = Depends(get_session)
 ):
@@ -23,7 +23,7 @@ def get_crt_user(
         raise HTTPException(status_code=401, detail='Unauthorized')
 
 
-def get_crt_tweet(
+async def get_crt_tweet(
     tweet_id: int = Path(alias="id"),
     session: Session = Depends(get_session),
 ):
@@ -34,7 +34,7 @@ def get_crt_tweet(
         raise HTTPException(status_code=404, detail="Tweet not found")
 
 
-def get_crt_favorite(
+async def get_crt_favorite(
         tweet_id: int = Path(alias="id"),
         user: models.User = Depends(get_crt_user),
         session: Session = Depends(get_session)
@@ -46,7 +46,7 @@ def get_crt_favorite(
         raise HTTPException(status_code=404, detail="Like not found")
 
 
-def get_user_by_id(
+async def get_user_by_id(
         user_id: int = Path(alias="id"),
         session: Session = Depends(get_session)
 ):

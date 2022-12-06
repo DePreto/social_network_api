@@ -1,6 +1,7 @@
 import os
 import json
 
+from aiofiles import open as async_open
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, Path
 from sqlalchemy.orm import Session
 from sqlalchemy import delete
@@ -16,7 +17,7 @@ out_file_path = os.environ.get("OUT_FILE_PATH")
 
 
 @router.post("/api/tweets", response_model=schemas.PostTweetResponseSchema, status_code=201)
-def post_tweet(
+async def post_tweet(
         data: schemas.PostTweetSchema,
         user: models.User = Depends(get_crt_user),
         session: Session = Depends(get_session)
@@ -42,16 +43,16 @@ def post_tweet(
 
 
 @router.post("/api/medias", response_model=schemas.PostMediaResponseSchema, status_code=201)
-def post_medias(
+async def post_medias(
         file: UploadFile,
         session: Session = Depends(get_session)
 ):
     file_name = get_rnd_file_name_by_content_type(file.content_type)
     file_path = os.path.join(out_file_path, file_name)
     try:
-        with open(file_path, 'wb') as out_file:
-            content = file.file.read()
-            out_file.write(content)
+        async with async_open(file_path, 'wb') as out_file:
+            content = await file.read()
+            await out_file.write(content)
     except IOError as exc:
         raise HTTPException(status_code=500, detail=str(exc))
     else:
@@ -66,8 +67,8 @@ def post_medias(
     }
 
 
-@router.delete("/api/tweets/{id}", response_model=schemas.DefaultSchema)
-def delete_tweet(
+@router.delete("/api/tweets/{id}", response_model=schemas.DefaultSuccessSchema)
+async def delete_tweet(
         user: models.User = Depends(get_crt_user),
         tweet: models.Tweet = Depends(get_crt_tweet),
         session: Session = Depends(get_session)
@@ -79,8 +80,8 @@ def delete_tweet(
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
-@router.post("/api/tweets/{id}/likes", response_model=schemas.DefaultSchema, status_code=201)
-def post_like(
+@router.post("/api/tweets/{id}/likes", response_model=schemas.DefaultSuccessSchema, status_code=201)
+async def post_like(
         tweet: models.Tweet = Depends(get_crt_tweet),
         user: models.User = Depends(get_crt_user),
         session: Session = Depends(get_session)
@@ -94,8 +95,8 @@ def post_like(
         session.commit()
 
 
-@router.delete("/api/tweets/{id}/likes", response_model=schemas.DefaultSchema)
-def delete_like(
+@router.delete("/api/tweets/{id}/likes", response_model=schemas.DefaultSuccessSchema)
+async def delete_like(
         favourite: models.Favorite = Depends(get_crt_favorite),
         session: Session = Depends(get_session)
 ):
@@ -103,8 +104,8 @@ def delete_like(
     session.commit()
 
 
-@router.post("/api/users/{id}/follow", response_model=schemas.DefaultSchema, status_code=201)
-def post_follow(
+@router.post("/api/users/{id}/follow", response_model=schemas.DefaultSuccessSchema, status_code=201)
+async def post_follow(
         following_id: int = Path(alias="id"),
         user: models.User = Depends(get_crt_user),
         session: Session = Depends(get_session)
@@ -125,8 +126,8 @@ def post_follow(
         session.commit()
 
 
-@router.delete("/api/users/{id}/follow", response_model=schemas.DefaultSchema)
-def delete_follow(
+@router.delete("/api/users/{id}/follow", response_model=schemas.DefaultSuccessSchema)
+async def delete_follow(
         following_id: int = Path(alias="id"),
         user: models.User = Depends(get_crt_user),
         session: Session = Depends(get_session)
@@ -147,7 +148,7 @@ def delete_follow(
 
 
 @router.get("/api/tweets", response_model=schemas.FeedSchemaOut)
-def get_tweets(
+async def get_tweets(
         user: models.User = Depends(get_crt_user),
 ):
     feed = []
@@ -162,7 +163,7 @@ def get_tweets(
 
 
 @router.get("/api/users/me", response_model=schemas.PageSchema)
-def get_me(
+async def get_me(
         user: models.User = Depends(get_crt_user)
 ):
     return {
@@ -172,7 +173,7 @@ def get_me(
 
 
 @router.get("/api/users/{id}", response_model=schemas.PageSchema)
-def get_user(
+async def get_user(
         user: models.User = Depends(get_user_by_id)
 ):
     return {
