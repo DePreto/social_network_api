@@ -3,7 +3,8 @@ import json
 
 from aiofiles import open as async_open
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, Path
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 from sqlalchemy import delete
 
 from app.depends import get_crt_user, get_session, get_crt_tweet, get_crt_favorite, get_user_by_id
@@ -20,21 +21,23 @@ router = APIRouter()
 async def post_tweet(
         data: schemas.PostTweetSchema,
         user: models.User = Depends(get_crt_user),
-        session: Session = Depends(get_session)
+        session: AsyncSession = Depends(get_session)
 ):
     tweet = models.Tweet(user_id=user.id, post=data.tweet_data)
     session.add(tweet)
-    session.flush()
+    await session.flush()
 
     for media_id in data.tweet_media_ids:
-        media = session.query(models.Media).filter_by(id=media_id).one_or_none()
+        stmt = select(models.Media).filter_by(id=media_id)
+        result = await session.execute(stmt, execution_options={"populate_existing": True})
+        media = result.scalars().one_or_none()
         if not media:
             raise HTTPException(status_code=404, detail=f"media {media_id} not found")
 
         post_media = models.tweet_media.insert().values({"tweet_id": tweet.id, "media_id": media_id})
-        session.execute(post_media)
+        await session.execute(post_media)
 
-    session.commit()
+    await session.commit()
 
     return {
         "result": True,
@@ -45,7 +48,7 @@ async def post_tweet(
 @router.post("/api/medias", response_model=schemas.PostMediaResponseSchema, status_code=201)
 async def post_medias(
         file: UploadFile,
-        session: Session = Depends(get_session)
+        session: AsyncSession = Depends(get_session)
 ):
     file_name = get_rnd_file_name_by_content_type(file.content_type)
     file_path = os.path.join(settings.OUT_FILE_PATH, file_name)
@@ -59,7 +62,7 @@ async def post_medias(
         media = models.Media(path=file_path)
         session.add(media)
 
-    session.commit()
+    await session.commit()
 
     return {
         "result": True,
@@ -71,11 +74,11 @@ async def post_medias(
 async def delete_tweet(
         user: models.User = Depends(get_crt_user),
         tweet: models.Tweet = Depends(get_crt_tweet),
-        session: Session = Depends(get_session)
+        session: AsyncSession = Depends(get_session)
 ):
     if user.id == tweet.user_id:
-        session.delete(tweet)
-        session.commit()
+        await session.delete(tweet)
+        await session.commit()
     else:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
@@ -84,35 +87,43 @@ async def delete_tweet(
 async def post_like(
         tweet: models.Tweet = Depends(get_crt_tweet),
         user: models.User = Depends(get_crt_user),
-        session: Session = Depends(get_session)
+        session: AsyncSession = Depends(get_session)
 ):
-    favourite_exist = session.query(models.Favorite).filter_by(user_id=user.id, tweet_id=tweet.id).one_or_none()
+    stmt = select(models.Favorite).filter_by(user_id=user.id, tweet_id=tweet.id)
+    result = await session.execute(stmt)
+    favourite_exist = result.scalars().one_or_none()
+
     if favourite_exist:
         raise HTTPException(status_code=409, detail="Favourite already exists.")
     else:
         favourite = models.Favorite(user_id=user.id, tweet_id=tweet.id)
         session.add(favourite)
-        session.commit()
+        await session.commit()
 
 
 @router.delete("/api/tweets/{id}/likes", response_model=schemas.DefaultSuccessSchema)
 async def delete_like(
         favourite: models.Favorite = Depends(get_crt_favorite),
-        session: Session = Depends(get_session)
+        session: AsyncSession = Depends(get_session)
 ):
-    session.delete(favourite)
-    session.commit()
+    await session.delete(favourite)
+    await session.commit()
 
 
 @router.post("/api/users/{id}/follow", response_model=schemas.DefaultSuccessSchema, status_code=201)
 async def post_follow(
         following_id: int = Path(alias="id"),
         user: models.User = Depends(get_crt_user),
-        session: Session = Depends(get_session)
+        session: AsyncSession = Depends(get_session)
 ):
 
-    following_user = session.query(models.User).filter_by(id=following_id).one_or_none()
-    following = session.query(models.user_following).filter_by(user_id=user.id, following_id=following_id).one_or_none()
+    user_stmt = select(models.User).filter_by(id=following_id)
+    following_stmt = select(models.user_following).filter_by(user_id=user.id, following_id=following_id)
+
+    user_res = await session.execute(user_stmt)
+    following_res = await session.execute(following_stmt)
+    following_user = user_res.scalars().one_or_none()
+    following = following_res.scalars().one_or_none()
 
     if not following_user:
         raise HTTPException(status_code=404, detail="Following user not found")
@@ -122,17 +133,19 @@ async def post_follow(
         raise HTTPException(status_code=409, detail="Following already exists.")
     else:
         user_following = models.user_following.insert().values({"user_id": user.id, "following_id": following_id})
-        session.execute(user_following)
-        session.commit()
+        await session.execute(user_following)
+        await session.commit()
 
 
 @router.delete("/api/users/{id}/follow", response_model=schemas.DefaultSuccessSchema)
 async def delete_follow(
         following_id: int = Path(alias="id"),
         user: models.User = Depends(get_crt_user),
-        session: Session = Depends(get_session)
+        session: AsyncSession = Depends(get_session)
 ):
-    following = session.query(models.user_following).filter_by(user_id=user.id, following_id=following_id).one_or_none()
+    stmt = select(models.user_following).filter_by(user_id=user.id, following_id=following_id)
+    res = await session.execute(stmt)
+    following = res.scalars().one_or_none()
 
     if following:
         delete_stmt = delete(models.user_following).where(
@@ -140,8 +153,8 @@ async def delete_follow(
             models.user_following.c.following_id == following_id
         )
 
-        session.execute(delete_stmt)
-        session.commit()
+        await session.execute(delete_stmt)
+        await session.commit()
 
     else:
         raise HTTPException(status_code=404, detail="Following not found")
