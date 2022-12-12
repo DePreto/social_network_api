@@ -75,7 +75,6 @@ class User(Base):
     )
 
     tweets: List[Tweet] = relationship("Tweet", backref="user", uselist=True, lazy="selectin")
-    favorites: List[Favorite] = relationship("Favorite", backref="user", uselist=True, lazy="selectin")
 
     __mapper_args__ = {"eager_defaults": True}
 

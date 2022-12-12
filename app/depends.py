@@ -17,9 +17,9 @@ async def get_crt_user(
         session: AsyncSession = Depends(get_session)
 ):
     stmt = select(models.User).filter_by(key=api_key).options(
-        selectinload(models.User.following)).options(
-        selectinload(models.User.followers)).options(
-        selectinload(models.User.tweets)
+        selectinload(models.User.following),
+        selectinload(models.User.followers),
+        selectinload(models.User.tweets),
     )
     res = await session.execute(stmt)
     user = res.scalars().one_or_none()
@@ -64,9 +64,9 @@ async def get_user_by_id(
         session: AsyncSession = Depends(get_session)
 ):
     stmt = select(models.User).filter_by(id=user_id).options(
-        selectinload(models.User.following)).options(
-        selectinload(models.User.followers)).options(
-        selectinload(models.User.tweets)
+        selectinload(models.User.following),
+        selectinload(models.User.followers),
+        selectinload(models.User.tweets),
     )
     res = await session.execute(stmt)
     user = res.scalars().one_or_none()
