@@ -23,6 +23,10 @@ async def post_tweet(
         user: models.User = Depends(get_crt_user),
         session: AsyncSession = Depends(get_session)
 ):
+    """
+    Endpoint по отправке твита.
+    """
+
     tweet = models.Tweet(user_id=user.id, post=data.tweet_data)
     session.add(tweet)
     await session.flush()
@@ -50,6 +54,10 @@ async def post_medias(
         file: UploadFile,
         session: AsyncSession = Depends(get_session)
 ):
+    """
+    Endpoint по загрузки медиа.
+    """
+
     file_name = get_rnd_file_name_by_content_type(file.content_type)
     file_path = os.path.join(settings.OUT_FILE_PATH, file_name)
     try:
@@ -76,6 +84,10 @@ async def delete_tweet(
         tweet: models.Tweet = Depends(get_crt_tweet),
         session: AsyncSession = Depends(get_session)
 ):
+    """
+    Endpoint по удалению твита.
+    """
+
     if user.id == tweet.user_id:
         await session.delete(tweet)
         await session.commit()
@@ -89,6 +101,10 @@ async def post_like(
         user: models.User = Depends(get_crt_user),
         session: AsyncSession = Depends(get_session)
 ):
+    """
+    Endpoint по добавлению отметки "нравится".
+    """
+
     stmt = select(models.Favorite).filter_by(user_id=user.id, tweet_id=tweet.id)
     result = await session.execute(stmt)
     favourite_exist = result.scalars().one_or_none()
@@ -106,6 +122,10 @@ async def delete_like(
         favourite: models.Favorite = Depends(get_crt_favorite),
         session: AsyncSession = Depends(get_session)
 ):
+    """
+    Endpoint по удалению отметки "Нравится".
+    """
+
     await session.delete(favourite)
     await session.commit()
 
@@ -116,6 +136,9 @@ async def post_follow(
         user: models.User = Depends(get_crt_user),
         session: AsyncSession = Depends(get_session)
 ):
+    """
+    Endpoint по созданию подписки на пользователя.
+    """
 
     user_stmt = select(models.User).filter_by(id=following_id)
     following_stmt = select(models.user_following).filter_by(user_id=user.id, following_id=following_id)
@@ -143,6 +166,10 @@ async def delete_follow(
         user: models.User = Depends(get_crt_user),
         session: AsyncSession = Depends(get_session)
 ):
+    """
+    Endoint по удалению подписки с пользователя.
+    """
+
     stmt = select(models.user_following).filter_by(user_id=user.id, following_id=following_id)
     res = await session.execute(stmt)
     following = res.scalars().one_or_none()
@@ -164,6 +191,10 @@ async def delete_follow(
 async def get_tweets(
         user: models.User = Depends(get_crt_user),
 ):
+    """
+    Endpoint по генерации ленты с твитами в соответствии с подписками пользователя.
+    """
+
     feed = []
     for flw_user in user.following:
         feed.extend(flw_user.tweets)
@@ -179,6 +210,10 @@ async def get_tweets(
 async def get_me(
         user: models.User = Depends(get_crt_user)
 ):
+    """
+    Endpoint с информацией о профиле текущего пользователя.
+    """
+
     return {
         "result": True,
         "user": schemas.UserSchema.from_orm(user).dict(by_alias=True)
@@ -189,6 +224,10 @@ async def get_me(
 async def get_user(
         user: models.User = Depends(get_user_by_id)
 ):
+    """
+    Endpoint с информацией о профиле заданного пользователя.
+    """
+
     return {
         "result": True,
         "user": schemas.UserSchema.from_orm(user).dict(by_alias=True)

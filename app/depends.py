@@ -8,6 +8,10 @@ from app import models
 
 
 async def get_session() -> AsyncSession:
+    """
+    Создание объекта сессии.
+    """
+
     async with async_session() as session:
         yield session
 
@@ -16,6 +20,10 @@ async def get_crt_user(
         api_key: str = Header(default=None, alias="api-key"),
         session: AsyncSession = Depends(get_session)
 ):
+    """
+    Аутентификация текущего пользователя.
+    """
+
     stmt = select(models.User).filter_by(key=api_key).options(
         selectinload(models.User.following),
         selectinload(models.User.followers),
@@ -34,6 +42,10 @@ async def get_crt_tweet(
     tweet_id: int = Path(alias="id"),
     session: AsyncSession = Depends(get_session),
 ):
+    """
+    Валидация наличия указанного твита.
+    """
+
     stmt = select(models.Tweet).filter_by(id=tweet_id)
     res = await session.execute(stmt)
     tweet = res.scalars().one_or_none()
@@ -49,6 +61,10 @@ async def get_crt_favorite(
         user: models.User = Depends(get_crt_user),
         session: AsyncSession = Depends(get_session)
 ):
+    """
+    Валидация наличия указанной отметки "Нравится".
+    """
+
     stmt = select(models.Favorite).filter_by(user_id=user.id, tweet_id=tweet_id)
     res = await session.execute(stmt)
     favorite = res.scalars().one_or_none()
@@ -63,6 +79,10 @@ async def get_user_by_id(
         user_id: int = Path(alias="id"),
         session: AsyncSession = Depends(get_session)
 ):
+    """
+    Валидация наличия указанного пользователя.
+    """
+
     stmt = select(models.User).filter_by(id=user_id).options(
         selectinload(models.User.following),
         selectinload(models.User.followers),
