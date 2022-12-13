@@ -17,7 +17,7 @@ from app import models
 router = APIRouter()
 
 
-@router.post("/api/tweets", response_model=schemas.PostTweetResponseSchema, status_code=201)
+@router.post("/api/tweets", response_model=schemas.PostTweetResponseSchema, status_code=201, tags=["tweets"])
 async def post_tweet(
         data: schemas.PostTweetSchema,
         user: models.User = Depends(get_crt_user),
@@ -45,7 +45,7 @@ async def post_tweet(
     }
 
 
-@router.post("/api/medias", response_model=schemas.PostMediaResponseSchema, status_code=201)
+@router.post("/api/medias", response_model=schemas.PostMediaResponseSchema, status_code=201, tags=["medias"])
 async def post_medias(
         file: UploadFile,
         session: AsyncSession = Depends(get_session)
@@ -70,7 +70,7 @@ async def post_medias(
     }
 
 
-@router.delete("/api/tweets/{id}", response_model=schemas.DefaultSuccessSchema)
+@router.delete("/api/tweets/{id}", response_model=schemas.DefaultSuccessSchema, tags=["tweets"])
 async def delete_tweet(
         user: models.User = Depends(get_crt_user),
         tweet: models.Tweet = Depends(get_crt_tweet),
@@ -83,7 +83,7 @@ async def delete_tweet(
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
-@router.post("/api/tweets/{id}/likes", response_model=schemas.DefaultSuccessSchema, status_code=201)
+@router.post("/api/tweets/{id}/likes", response_model=schemas.DefaultSuccessSchema, status_code=201, tags=["likes"])
 async def post_like(
         tweet: models.Tweet = Depends(get_crt_tweet),
         user: models.User = Depends(get_crt_user),
@@ -101,7 +101,7 @@ async def post_like(
         await session.commit()
 
 
-@router.delete("/api/tweets/{id}/likes", response_model=schemas.DefaultSuccessSchema)
+@router.delete("/api/tweets/{id}/likes", response_model=schemas.DefaultSuccessSchema, tags=["likes"])
 async def delete_like(
         favourite: models.Favorite = Depends(get_crt_favorite),
         session: AsyncSession = Depends(get_session)
@@ -110,7 +110,7 @@ async def delete_like(
     await session.commit()
 
 
-@router.post("/api/users/{id}/follow", response_model=schemas.DefaultSuccessSchema, status_code=201)
+@router.post("/api/users/{id}/follow", response_model=schemas.DefaultSuccessSchema, status_code=201, tags=["follow"])
 async def post_follow(
         following_id: int = Path(alias="id"),
         user: models.User = Depends(get_crt_user),
@@ -137,7 +137,7 @@ async def post_follow(
         await session.commit()
 
 
-@router.delete("/api/users/{id}/follow", response_model=schemas.DefaultSuccessSchema)
+@router.delete("/api/users/{id}/follow", response_model=schemas.DefaultSuccessSchema, tags=["follow"])
 async def delete_follow(
         following_id: int = Path(alias="id"),
         user: models.User = Depends(get_crt_user),
@@ -160,7 +160,7 @@ async def delete_follow(
         raise HTTPException(status_code=404, detail="Following not found")
 
 
-@router.get("/api/tweets", response_model=schemas.FeedSchemaOut)
+@router.get("/api/tweets", response_model=schemas.FeedSchemaOut, tags=["tweets"])
 async def get_tweets(
         user: models.User = Depends(get_crt_user),
 ):
@@ -175,7 +175,7 @@ async def get_tweets(
     }
 
 
-@router.get("/api/users/me", response_model=schemas.PageSchema)
+@router.get("/api/users/me", response_model=schemas.PageSchema, tags=["users"])
 async def get_me(
         user: models.User = Depends(get_crt_user)
 ):
@@ -185,7 +185,7 @@ async def get_me(
     }
 
 
-@router.get("/api/users/{id}", response_model=schemas.PageSchema)
+@router.get("/api/users/{id}", response_model=schemas.PageSchema, tags=["users"])
 async def get_user(
         user: models.User = Depends(get_user_by_id)
 ):
