@@ -5,6 +5,7 @@ import sentry_sdk
 import uvicorn
 from fastapi import FastAPI, Depends, Request
 from fastapi.responses import JSONResponse
+from starlette_prometheus import metrics, PrometheusMiddleware
 
 from app.depends import get_crt_user
 from app.routes import router
@@ -41,6 +42,9 @@ app = FastAPI(
     }
 )
 app.include_router(router)
+
+app.add_middleware(PrometheusMiddleware)
+app.add_route("/metrics", metrics)
 
 
 @app.exception_handler(Exception)
