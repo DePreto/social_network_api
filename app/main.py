@@ -1,6 +1,7 @@
 import json
 from typing import Any
 
+import sentry_sdk
 import uvicorn
 from fastapi import FastAPI, Depends, Request
 from fastapi.responses import JSONResponse
@@ -8,6 +9,18 @@ from fastapi.responses import JSONResponse
 from app.depends import get_crt_user
 from app.routes import router
 from app import schemas
+
+sentry_sdk.init(
+    dsn="https://0303c01fe6244ed4a2bb56d9aa79646a@o1114395.ingest.sentry.io/4504328211398656",
+
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    # We recommend adjusting this value in production,
+    traces_sample_rate=1.0,
+    _experiments={
+        "profiles_sample_rate": 1.0,
+      },
+)
 
 
 class DefaultResponse(JSONResponse):
