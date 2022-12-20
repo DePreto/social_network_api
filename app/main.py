@@ -3,11 +3,10 @@ from typing import Any
 
 import sentry_sdk
 import uvicorn
-from fastapi import FastAPI, Depends, Request
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from starlette_prometheus import metrics, PrometheusMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
 
-from app.depends import get_crt_user
 from app.routes import router
 from app import schemas
 
@@ -35,7 +34,6 @@ class DefaultResponse(JSONResponse):
 
 
 app = FastAPI(
-    dependencies=[Depends(get_crt_user)],
     default_response_class=DefaultResponse,
     responses={
         418: {"model": schemas.DefaultExceptionSchema}
@@ -43,8 +41,10 @@ app = FastAPI(
 )
 app.include_router(router)
 
-app.add_middleware(PrometheusMiddleware)
-app.add_route("/metrics", metrics)
+
+@app.on_event("startup")
+async def startup():
+    Instrumentator().instrument(app).expose(app)
 
 
 @app.exception_handler(Exception)

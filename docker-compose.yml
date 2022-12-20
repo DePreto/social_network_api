@@ -52,6 +52,8 @@ services:
 
   grafana:
     image: grafana/grafana:main
+    volumes:
+      - ./prometheus/datasource.yml:/etc/grafana/provisioning/datasource.yml
     ports:
       - "3000:3000"
 

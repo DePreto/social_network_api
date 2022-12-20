@@ -14,7 +14,9 @@ from app import schemas
 from app import models
 
 
-router = APIRouter()
+router = APIRouter(
+    dependencies=[Depends(get_crt_user)],
+)
 
 
 @router.post("/api/tweets", response_model=schemas.PostTweetResponseSchema, status_code=201, tags=["tweets"])
