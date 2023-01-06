@@ -16,4 +16,4 @@ RUN bash -c "if [ $INSTALL_DEV == 'true' ] ; then poetry install --no-root ; els
 
 ENV PYTHONPATH=/src:/src/app
 
-CMD poetry run alembic upgrade head && uvicorn --host 0.0.0.0 --port 80 app.main:app
+CMD poetry run alembic upgrade head && uvicorn --host 0.0.0.0 --port 80 --log-config=./app/log_conf.yml app.main:app
