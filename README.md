@@ -88,11 +88,6 @@ Project build
 docker-compose up --build -d
 ```
 
-## Дополнительная информация
-- Sentry доступен по адресу ...
-- Grafana автоматически подгружает datasource и dashboard со сборкой проекта, которые уже доступны по адресу
-- Kibana доступна по адресу... источник будет подгружен в течении 5-7 минут
-
 ## Available local resources
 - [Interactive API docs (Swagger UI)](http://localhost:80/docs)
 - [pgAdmin](http://localhost:8080/)
