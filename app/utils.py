@@ -1,7 +1,7 @@
 import uuid
 
 
-def get_rnd_file_name_by_content_type(content_type):
+def get_rnd_file_name_by_content_type(content_type: str) -> str:
     """
     Генерация случайного имени файла.
     """

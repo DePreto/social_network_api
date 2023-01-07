@@ -1,6 +1,6 @@
 from typing import Any, Dict, Optional
 
-from pydantic import BaseSettings, PostgresDsn, validator, EmailStr, DirectoryPath
+from pydantic import BaseSettings, PostgresDsn, validator, EmailStr, DirectoryPath, HttpUrl
 
 
 class Settings(BaseSettings):
@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     PGADMIN_LISTEN_PORT: str
 
     OUT_FILE_PATH: DirectoryPath
+
+    SENTRY_DSN: HttpUrl
 
     @validator("SQLALCHEMY_DATABASE_URI", pre=True)
     def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
