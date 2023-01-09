@@ -5,6 +5,7 @@ import sentry_sdk
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.routes import router
@@ -40,6 +41,7 @@ app = FastAPI(
     }
 )
 app.include_router(router)
+app.mount("/", StaticFiles(directory="app/static", html=True), name="static")
 
 
 @app.on_event("startup")
